@@ -1,0 +1,143 @@
+/* =====================================================
+   INTERACTIVE ADDITIONS — appended to dashboard.css
+   (add this content at the very end of dashboard.css)
+===================================================== */
+
+/* ── Sidebar collapse transition ── */
+.sidebar {
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
+  }
+  
+  /* ── Search bar hover effect ── */
+  .topbar-search-wrap:hover .topbar-search-input {
+    border-color: var(--gray-300);
+    background: var(--white);
+  }
+  
+  /* ── Notification bell active state ── */
+  .topbar-icon-btn.active {
+    background: var(--amber-50);
+    border-color: #fde68a;
+    color: var(--amber-500);
+  }
+  
+  /* ── Alert log dismiss button ── */
+  .alert-dismiss-btn {
+    background: none;
+    border: none;
+    color: var(--gray-300);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0 2px;
+    flex-shrink: 0;
+    transition: color 0.12s;
+  }
+  .alert-dismiss-btn:hover { color: var(--red-500); }
+  
+  /* ── Threshold bar as button ── */
+  .alert-top-bar {
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .alert-top-bar:hover { background: #fef3c7 !important; }
+  
+  /* ── Relay status badge as button ── */
+  .status-badge {
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .status-badge.on:hover  { background: #16a34a; }
+  .status-badge.off:hover { background: var(--gray-400); color: var(--white); }
+  
+  /* ── Relay clock icon ── */
+  .relay-icon-btn {
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .relay-icon-btn:hover { color: var(--amber-500) !important; }
+  
+  /* ── Dots icon / device menu ── */
+  .dots-icon {
+    cursor: pointer;
+    transition: color 0.15s, transform 0.15s;
+  }
+  .dots-icon:hover {
+    color: var(--gray-700) !important;
+    transform: scale(1.15);
+  }
+  
+  /* ── Clear alerts button ── */
+  .clear-alerts-btn:not(:disabled):hover {
+    background: var(--red-50);
+    border-color: #fca5a5;
+    color: var(--red-600);
+  }
+  
+  .clear-alerts-btn:disabled {
+    cursor: not-allowed;
+  }
+  
+  /* ── Disabled inline clear button ── */
+  .clear-alerts-inline-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+  
+  /* ── Chart tab button active animation ── */
+  .chart-tab-btn {
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .chart-tab-btn:not(.active):hover {
+    background: rgba(255,255,255,0.6);
+    color: var(--gray-700);
+  }
+  
+  /* ── Stat card click feedback ── */
+  .stat-card-new {
+    cursor: default;
+  }
+  
+  /* ── Device main-device row hover ── */
+  .main-device {
+    transition: background 0.15s;
+  }
+  .main-device:hover {
+    background: var(--gray-100);
+  }
+  
+  /* ── Reading box enhanced hover ── */
+  .reading-box {
+    cursor: default;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  /* ── Responsive: collapse sidebar on small screens ── */
+  @media (max-width: 900px) {
+    .sidebar {
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      z-index: 300;
+      transform: translateX(0);
+    }
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+    .dashboard-main {
+      flex-direction: column;
+    }
+    .right-section {
+      width: 100%;
+    }
+    .realtime-grid-new {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  /* ── Sidebar hidden state ── */
+  .sidebar[data-hidden="true"] {
+    transform: translateX(-100%);
+    opacity: 0;
+    pointer-events: none;
+  }
