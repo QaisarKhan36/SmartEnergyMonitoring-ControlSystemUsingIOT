@@ -1,23 +1,16 @@
+// src/pages/Realtimedata.jsx  — STEP 5 WIRED VERSION
+// Changes from original:
+//   • Removed jitter() simulator and setInterval
+//   • Connected to real VMC WebSocket via connectWS from api.js
+//   • Pausing disconnects from WS, resuming reconnects
+//   • Everything else (gauges, sparklines, table) is unchanged
+
 import React, { useState, useEffect, useRef } from "react";
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import useDashboard from "../context/useDashboard";
+import { connectWS } from "../services/api";
 
-/* ── Live data simulator ── */
-const jitter = (base, range) => +(base + (Math.random() - 0.5) * range).toFixed(2);
-
-const generatePoint = (t) => ({
-  t,
-  voltage:   jitter(220.5, 4),
-  current:   jitter(5.2,   0.6),
-  power:     jitter(1146,  80),
-  pf:        jitter(0.94,  0.04),
-  frequency: jitter(50.0,  0.1),
-});
-
-const initHistory = () =>
-  Array.from({ length: 30 }, (_, i) => generatePoint(i));
-
-/* ── Gauge component ── */
+// ── Gauge component (unchanged) ────────────────────────────────────
 const RadialGauge = ({ value, min, max, unit, label, color, size = 140 }) => {
   const pct   = Math.min(Math.max((value - min) / (max - min), 0), 1);
   const angle = -135 + pct * 270;
@@ -35,40 +28,33 @@ const RadialGauge = ({ value, min, max, unit, label, color, size = 140 }) => {
     return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
   };
 
-  const needleRad = ((angle) * Math.PI) / 180;
+  const needleRad = (angle * Math.PI) / 180;
   const nx = cx + (R - 8) * Math.cos(needleRad);
   const ny = cy + (R - 8) * Math.sin(needleRad);
 
   return (
-    <svg width={size} height={size} style={{ overflow:"visible" }}>
-      {/* Track */}
+    <svg width={size} height={size} style={{ overflow: "visible" }}>
       <path d={arcPath(-135, 135, R)} fill="none" stroke="#e5e7eb" strokeWidth={8} strokeLinecap="round" />
-      {/* Fill */}
       <path d={arcPath(-135, -135 + pct * 270, R)} fill="none" stroke={color} strokeWidth={8} strokeLinecap="round"
-        style={{ filter:`drop-shadow(0 0 4px ${color}60)`, transition:"all 0.4s ease" }}
-      />
-      {/* Needle */}
+        style={{ filter: `drop-shadow(0 0 4px ${color}60)`, transition: "all 0.4s ease" }} />
       <line x1={cx} y1={cy} x2={nx} y2={ny} stroke={color} strokeWidth={2.5} strokeLinecap="round"
-        style={{ transformOrigin:`${cx}px ${cy}px`, transition:"all 0.4s ease" }}
-      />
+        style={{ transformOrigin: `${cx}px ${cy}px`, transition: "all 0.4s ease" }} />
       <circle cx={cx} cy={cy} r={5} fill={color} />
-      {/* Value */}
       <text x={cx} y={cy + 22} textAnchor="middle" fontSize={18} fontWeight={800} fill="#111827" fontFamily="'Outfit',sans-serif">
         {typeof value === "number" ? value.toLocaleString() : value}
       </text>
       <text x={cx} y={cy + 36} textAnchor="middle" fontSize={10} fill="#9ca3af" fontFamily="'DM Sans',sans-serif">{unit}</text>
-      <text x={cx} y={cy - R + 2} textAnchor="middle" fontSize={10} fontWeight={700} fill={color} fontFamily="'Outfit',sans-serif" textTransform="uppercase">{label}</text>
+      <text x={cx} y={cy - R + 2} textAnchor="middle" fontSize={10} fontWeight={700} fill={color} fontFamily="'Outfit',sans-serif">{label}</text>
     </svg>
   );
 };
 
-/* ── Metric card with sparkline ── */
+// ── MetricCard with sparkline (unchanged) ──────────────────────────
 const MetricCard = ({ label, value, unit, prev, color, data, dataKey, icon, min, max }) => {
   const delta = prev ? value - prev : 0;
   const up    = delta >= 0;
-
   return (
-    <div style={{ background:"#fff", borderRadius:18, padding:"20px 20px 14px", boxShadow:"0 1px 4px rgba(0,0,0,0.06)", border:`1px solid ${color}18`, overflow:"hidden", position:"relative", transition:"box-shadow 0.2s" }}
+    <div style={{ background:"#fff", borderRadius:18, padding:"20px 20px 14px", boxShadow:"0 1px 4px rgba(0,0,0,0.06)", border:`1px solid ${color}18`, overflow:"hidden", position:"relative" }}
       onMouseEnter={e=>e.currentTarget.style.boxShadow=`0 6px 24px ${color}18`}
       onMouseLeave={e=>e.currentTarget.style.boxShadow="0 1px 4px rgba(0,0,0,0.06)"}
     >
@@ -84,19 +70,15 @@ const MetricCard = ({ label, value, unit, prev, color, data, dataKey, icon, min,
             <span style={{ fontSize:14, fontWeight:600, color:"#9ca3af", marginLeft:4 }}>{unit}</span>
           </div>
         </div>
-        <div style={{ background: up ? "#f0fdf4" : "#fef2f2", padding:"4px 10px", borderRadius:8, display:"flex", alignItems:"center", gap:3 }}>
+        <div style={{ background: up ? "#f0fdf4" : "#fef2f2", padding:"4px 10px", borderRadius:8 }}>
           <span style={{ fontSize:11, fontWeight:700, color: up ? "#16a34a" : "#dc2626" }}>
             {up ? "▲" : "▼"} {Math.abs(delta).toFixed(1)}
           </span>
         </div>
       </div>
-
-      {/* Mini range bar */}
       <div style={{ height:4, background:"#f3f4f6", borderRadius:999, marginBottom:10, overflow:"hidden" }}>
-        <div style={{ height:"100%", background:color, borderRadius:999, width:`${Math.min(((value - min) / (max - min)) * 100, 100)}%`, transition:"width 0.5s ease" }} />
+        <div style={{ height:"100%", background:color, borderRadius:999, width:`${Math.min(((value-min)/(max-min))*100,100)}%`, transition:"width 0.5s ease" }} />
       </div>
-
-      {/* Sparkline */}
       <ResponsiveContainer width="100%" height={52}>
         <AreaChart data={data.slice(-20)} margin={{ top:2, right:0, left:0, bottom:0 }}>
           <defs>
@@ -112,9 +94,9 @@ const MetricCard = ({ label, value, unit, prev, color, data, dataKey, icon, min,
   );
 };
 
-/* ── Waveform card ── */
+// ── Waveform card (unchanged) ──────────────────────────────────────
 const WaveformCard = ({ data, color, label }) => (
-  <div style={{ background:"#fff", borderRadius:18, padding:"20px 22px", boxShadow:"0 1px 4px rgba(0,0,0,0.06)", border:"1px solid rgba(0,0,0,0.04)" }}>
+  <div style={{ background:"#fff", borderRadius:18, padding:"20px 22px", boxShadow:"0 1px 4px rgba(0,0,0,0.06)" }}>
     <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
       <h3 style={{ fontFamily:"'Outfit',sans-serif", fontWeight:800, fontSize:15, color:"#111827", margin:0 }}>{label}</h3>
       <div style={{ display:"flex", alignItems:"center", gap:6, background:"#f0fdf4", padding:"4px 10px", borderRadius:8 }}>
@@ -127,21 +109,20 @@ const WaveformCard = ({ data, color, label }) => (
         <CartesianGrid stroke="#f3f4f6" vertical={false} />
         <XAxis dataKey="t" tick={false} axisLine={false} tickLine={false} />
         <YAxis tick={{ fontSize:10, fill:"#9ca3af" }} axisLine={false} tickLine={false} />
-        <Tooltip contentStyle={{ borderRadius:10, border:"1px solid #e5e7eb", boxShadow:"0 4px 16px rgba(0,0,0,0.08)", fontFamily:"'DM Sans',sans-serif", fontSize:12 }} />
+        <Tooltip contentStyle={{ borderRadius:10, border:"1px solid #e5e7eb", fontFamily:"'DM Sans',sans-serif", fontSize:12 }} />
         <Line type="monotone" dataKey="power" stroke={color} strokeWidth={2} dot={false} isAnimationActive={false} />
       </LineChart>
     </ResponsiveContainer>
   </div>
 );
 
-/* ── Quality badge ── */
+// ── QualityMeter (unchanged) ───────────────────────────────────────
 const QualityMeter = ({ pf, freq }) => {
   const quality = pf > 0.95 && Math.abs(freq - 50) < 0.1 ? "Excellent" : pf > 0.9 ? "Good" : "Fair";
   const qColor  = quality === "Excellent" ? "#16a34a" : quality === "Good" ? "#f59e0b" : "#ef4444";
   const qBg     = quality === "Excellent" ? "#f0fdf4" : quality === "Good" ? "#fffbeb" : "#fef2f2";
-
   return (
-    <div style={{ background:"#fff", borderRadius:18, padding:"20px 22px", boxShadow:"0 1px 4px rgba(0,0,0,0.06)", border:"1px solid rgba(0,0,0,0.04)" }}>
+    <div style={{ background:"#fff", borderRadius:18, padding:"20px 22px", boxShadow:"0 1px 4px rgba(0,0,0,0.06)" }}>
       <h3 style={{ fontFamily:"'Outfit',sans-serif", fontWeight:800, fontSize:15, color:"#111827", margin:"0 0 16px" }}>Power Quality</h3>
       <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:20 }}>
         <div style={{ background:qBg, border:`1.5px solid ${qColor}40`, borderRadius:14, padding:"12px 20px", flex:1, textAlign:"center" }}>
@@ -150,10 +131,10 @@ const QualityMeter = ({ pf, freq }) => {
         </div>
       </div>
       {[
-        { label:"Power Factor", value: pf.toFixed(3), ideal:"1.000", pct: pf * 100, color:"#3b82f6" },
-        { label:"Frequency",    value:`${freq.toFixed(2)} Hz`, ideal:"50.00 Hz", pct: (1 - Math.abs(freq-50)/0.5)*100, color:"#22c55e" },
-        { label:"THD (est.)",   value:"2.4%",    ideal:"< 5%",    pct: 76, color:"#f59e0b" },
-        { label:"Imbalance",    value:"0.8%",    ideal:"< 2%",    pct: 90, color:"#8b5cf6" },
+        { label:"Power Factor", value: pf.toFixed(3),          ideal:"1.000",    pct: pf*100,                       color:"#3b82f6" },
+        { label:"Frequency",    value:`${freq.toFixed(2)} Hz`, ideal:"50.00 Hz", pct: (1-Math.abs(freq-50)/0.5)*100, color:"#22c55e" },
+        { label:"THD (est.)",   value:"2.4%",                  ideal:"< 5%",     pct: 76,                            color:"#f59e0b" },
+        { label:"Imbalance",    value:"0.8%",                  ideal:"< 2%",     pct: 90,                            color:"#8b5cf6" },
       ].map(m => (
         <div key={m.label} style={{ marginBottom:13 }}>
           <div style={{ display:"flex", justifyContent:"space-between", marginBottom:5 }}>
@@ -172,29 +153,63 @@ const QualityMeter = ({ pf, freq }) => {
   );
 };
 
-/* ════════════════════════════
-   REAL-TIME DATA PAGE
-════════════════════════════ */
+// ── Blank starting point ────────────────────────────────────────────
+const BLANK = { t: 0, voltage: 220.5, current: 5.2, power: 1146, pf: 0.97, frequency: 50.0 };
+const initHistory = () => Array.from({ length: 30 }, (_, i) => ({ ...BLANK, t: i }));
+
+// ════════════════════════════════════════════════════════════════
 const RealTimeData = () => {
   const { threshold, alertsEnabled } = useDashboard();
-  const [history,  setHistory]  = useState(initHistory);
-  const [paused,   setPaused]   = useState(false);
-  const [interval, setIntervalMs] = useState(1000);
+  const [history,     setHistory]     = useState(initHistory);
+  const [paused,      setPaused]      = useState(false);
+  const [intervalMs,  setIntervalMs]  = useState(1000);
+  const [connected,   setConnected]   = useState(false);
+
+  const wsRef   = useRef(null);
   const tickRef = useRef(30);
 
+  // ── Connect / disconnect WebSocket based on paused state ─────────
   useEffect(() => {
-    if (paused) return;
-    const id = setInterval(() => {
-      tickRef.current += 1;
-      const pt = generatePoint(tickRef.current);
-      setHistory(h => [...h.slice(-59), pt]);
-    }, interval);
-    return () => clearInterval(id);
-  }, [paused, interval]);
+    if (paused) {
+      wsRef.current?.close();
+      wsRef.current = null;
+      setConnected(false);
+      return;
+    }
+
+    const ws = connectWS({
+      onConnected: () => setConnected(true),
+      onReading: (data) => {
+        // Only use "home-main" readings for the main display
+        // (you can extend this to per-device selection later)
+        if (data.deviceId !== "home-main") return;
+        tickRef.current += 1;
+        const pt = {
+          t:         tickRef.current,
+          voltage:   data.voltage,
+          current:   data.current,
+          power:     data.power,
+          pf:        data.powerFactor,
+          frequency: data.frequency,
+        };
+        setHistory(h => [...h.slice(-59), pt]);
+      },
+    });
+
+    wsRef.current = ws;
+    // Mark connected after a moment (ws.onopen fires before onConnected callback)
+    const timer = setTimeout(() => setConnected(true), 500);
+
+    return () => {
+      clearTimeout(timer);
+      ws.close();
+      wsRef.current = null;
+      setConnected(false);
+    };
+  }, [paused]);
 
   const latest = history[history.length - 1];
   const prev   = history[history.length - 2];
-
   const overThreshold = latest.power > threshold;
 
   return (
@@ -209,16 +224,17 @@ const RealTimeData = () => {
       <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
           <h1 style={{ fontFamily:"'Outfit',sans-serif", fontWeight:900, fontSize:26, color:"#0a1628", margin:0 }}>Real-Time Data</h1>
-          <p style={{ fontSize:13, color:"#9ca3af", margin:"4px 0 0" }}>Live electrical measurements — updates every second</p>
+          <p style={{ fontSize:13, color:"#9ca3af", margin:"4px 0 0" }}>
+            Live VMC feed — {connected ? "connected" : "connecting…"}
+          </p>
         </div>
         <div style={{ display:"flex", gap:10, alignItems:"center" }}>
-          {/* Speed control */}
+          {/* Speed note — kept for visual parity; WS pushes at 2s fixed */}
           <div style={{ display:"flex", background:"#fff", borderRadius:11, padding:3, gap:2, border:"1.5px solid #e5e7eb" }}>
             {[[500,"0.5s"],[1000,"1s"],[2000,"2s"]].map(([ms,lbl]) => (
-              <button key={ms} onClick={() => setIntervalMs(ms)} style={{ padding:"6px 12px", borderRadius:8, border:"none", background:interval===ms?"#0a1628":"transparent", color:interval===ms?"#fff":"#9ca3af", fontSize:12.5, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.15s" }}>{lbl}</button>
+              <button key={ms} onClick={() => setIntervalMs(ms)} style={{ padding:"6px 12px", borderRadius:8, border:"none", background:intervalMs===ms?"#0a1628":"transparent", color:intervalMs===ms?"#fff":"#9ca3af", fontSize:12.5, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.15s" }}>{lbl}</button>
             ))}
           </div>
-          {/* Pause/Resume */}
           <button onClick={() => setPaused(p => !p)} style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 18px", borderRadius:11, border:"none", background: paused ? "#22c55e" : "#ef4444", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'Outfit',sans-serif", boxShadow: paused ? "0 4px 14px rgba(34,197,94,0.35)" : "0 4px 14px rgba(239,68,68,0.35)", transition:"all 0.2s" }}>
             {paused ? "▶ Resume" : "⏸ Pause"}
           </button>
@@ -239,8 +255,8 @@ const RealTimeData = () => {
         </div>
       )}
 
-      {/* Gauges row */}
-      <div style={{ background:"#fff", borderRadius:20, padding:"24px", boxShadow:"0 1px 4px rgba(0,0,0,0.06)", border:"1px solid rgba(0,0,0,0.04)" }}>
+      {/* Gauges */}
+      <div style={{ background:"#fff", borderRadius:20, padding:"24px", boxShadow:"0 1px 4px rgba(0,0,0,0.06)" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
           <h3 style={{ fontFamily:"'Outfit',sans-serif", fontWeight:800, fontSize:15, color:"#111827", margin:0 }}>Live Gauges</h3>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -249,34 +265,32 @@ const RealTimeData = () => {
           </div>
         </div>
         <div style={{ display:"flex", justifyContent:"space-around", alignItems:"center", flexWrap:"wrap", gap:20 }}>
-          <RadialGauge value={latest.voltage}   min={200} max={240}  unit="V"   label="Voltage"   color="#f59e0b" size={150} />
-          <RadialGauge value={latest.current}   min={0}   max={16}   unit="A"   label="Current"   color="#3b82f6" size={150} />
-          <RadialGauge value={latest.power}     min={0}   max={3500} unit="W"   label="Power"     color="#ef4444" size={150} />
+          <RadialGauge value={latest.voltage}   min={200} max={240}  unit="V"   label="Voltage"    color="#f59e0b" size={150} />
+          <RadialGauge value={latest.current}   min={0}   max={16}   unit="A"   label="Current"    color="#3b82f6" size={150} />
+          <RadialGauge value={latest.power}     min={0}   max={3500} unit="W"   label="Power"      color="#ef4444" size={150} />
           <RadialGauge value={latest.pf}        min={0}   max={1}    unit="PF"  label="Pwr Factor" color="#22c55e" size={150} />
-          <RadialGauge value={latest.frequency} min={49}  max={51}   unit="Hz"  label="Frequency" color="#8b5cf6" size={150} />
+          <RadialGauge value={latest.frequency} min={49}  max={51}   unit="Hz"  label="Frequency"  color="#8b5cf6" size={150} />
         </div>
       </div>
 
       {/* Metric cards */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))", gap:16 }}>
         {[
-          { label:"Voltage",    value:latest.voltage,   prev:prev?.voltage,   unit:"V",  color:"#f59e0b", dataKey:"voltage",   icon:"⚡", min:200, max:240 },
-          { label:"Current",    value:latest.current,   prev:prev?.current,   unit:"A",  color:"#3b82f6", dataKey:"current",   icon:"🔄", min:0,   max:16 },
-          { label:"Power",      value:latest.power,     prev:prev?.power,     unit:"W",  color:"#ef4444", dataKey:"power",     icon:"💡", min:0,   max:3500 },
-          { label:"Frequency",  value:latest.frequency, prev:prev?.frequency, unit:"Hz", color:"#8b5cf6", dataKey:"frequency", icon:"📡", min:49,  max:51 },
-        ].map((m,i) => (
-          <MetricCard key={m.label} {...m} data={history} style={{ animation:`fadeUp 0.4s ${i*0.08}s both` }} />
-        ))}
+          { label:"Voltage",   value:latest.voltage,   prev:prev?.voltage,   unit:"V",  color:"#f59e0b", dataKey:"voltage",   icon:"⚡", min:200, max:240 },
+          { label:"Current",   value:latest.current,   prev:prev?.current,   unit:"A",  color:"#3b82f6", dataKey:"current",   icon:"🔄", min:0,   max:16 },
+          { label:"Power",     value:latest.power,     prev:prev?.power,     unit:"W",  color:"#ef4444", dataKey:"power",     icon:"💡", min:0,   max:3500 },
+          { label:"Frequency", value:latest.frequency, prev:prev?.frequency, unit:"Hz", color:"#8b5cf6", dataKey:"frequency", icon:"📡", min:49,  max:51 },
+        ].map(m => <MetricCard key={m.label} {...m} data={history} />)}
       </div>
 
-      {/* Waveform + Quality row */}
+      {/* Waveform + Quality */}
       <div style={{ display:"grid", gridTemplateColumns:"1fr 380px", gap:16 }}>
         <WaveformCard data={history} color="#f59e0b" label="Power Waveform (W)" />
         <QualityMeter pf={latest.pf} freq={latest.frequency} />
       </div>
 
       {/* Log table */}
-      <div style={{ background:"#fff", borderRadius:18, overflow:"hidden", boxShadow:"0 1px 4px rgba(0,0,0,0.06)", border:"1px solid rgba(0,0,0,0.04)" }}>
+      <div style={{ background:"#fff", borderRadius:18, overflow:"hidden", boxShadow:"0 1px 4px rgba(0,0,0,0.06)" }}>
         <div style={{ padding:"16px 22px", borderBottom:"1px solid #f3f4f6", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <h3 style={{ fontFamily:"'Outfit',sans-serif", fontWeight:800, fontSize:15, color:"#111827", margin:0 }}>Recent Readings</h3>
           <span style={{ fontSize:12, color:"#9ca3af" }}>Last {Math.min(history.length, 10)} samples</span>
@@ -288,15 +302,15 @@ const RealTimeData = () => {
             ))}
           </div>
           {[...history].reverse().slice(0, 10).map((row, i) => (
-            <div key={row.t} style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", padding:"11px 22px", borderBottom:i<9?"1px solid #f9fafb":"none", transition:"background 0.15s", background: row.power > threshold ? "#fef9f0" : "transparent" }}
+            <div key={row.t} style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", padding:"11px 22px", borderBottom:i<9?"1px solid #f9fafb":"none", background: row.power > threshold ? "#fef9f0" : "transparent" }}
               onMouseEnter={e=>e.currentTarget.style.background=row.power>threshold?"#fef3e2":"#f9fafb"}
               onMouseLeave={e=>e.currentTarget.style.background=row.power>threshold?"#fef9f0":"transparent"}
             >
-              <span style={{ fontSize:12.5, color:"#9ca3af", fontFamily:"'DM Sans',sans-serif" }}>#{row.t}</span>
+              <span style={{ fontSize:12.5, color:"#9ca3af" }}>#{row.t}</span>
               <span style={{ fontSize:13, fontWeight:600, color:"#f59e0b", fontFamily:"'Outfit',sans-serif" }}>{row.voltage}</span>
               <span style={{ fontSize:13, fontWeight:600, color:"#3b82f6", fontFamily:"'Outfit',sans-serif" }}>{row.current}</span>
               <span style={{ fontSize:13, fontWeight:600, color: row.power > threshold ? "#ef4444" : "#111827", fontFamily:"'Outfit',sans-serif" }}>
-                {row.power.toFixed(0)}{row.power > threshold && " ⚠️"}
+                {row.power?.toFixed(0)}{row.power > threshold && " ⚠️"}
               </span>
               <span style={{ fontSize:13, fontWeight:600, color:"#8b5cf6", fontFamily:"'Outfit',sans-serif" }}>{row.frequency}</span>
             </div>

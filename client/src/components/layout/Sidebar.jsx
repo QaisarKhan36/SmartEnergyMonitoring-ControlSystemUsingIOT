@@ -46,7 +46,7 @@ const navSections = [
       { iconKey: "cost",       label: "Cost & Budget",  page: "cost"       },
       { iconKey: "reports",    label: "Reports",        page: "reports"    },
       { iconKey: "history",    label: "History",        page: "history"    },
-      { iconKey: "alerts",     label: "Alerts",         page: "alerts",     badge: true },
+      { iconKey: "alerts",     label: "Alerts",         page: "alerts",    badge: true },
       { iconKey: "settings",   label: "Settings",       page: "settings"   },
       { iconKey: "help",       label: "Help",           page: "help"       },
     ],
@@ -56,10 +56,20 @@ const navSections = [
 const Sidebar = () => {
   const { alerts, sidebarOpen, currentPage, setCurrentPage } = useDashboard();
 
-  if (!sidebarOpen) return null;
-
   return (
-    <aside className="sidebar">
+    <aside
+      className="sidebar"
+      style={{
+        transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)",
+        opacity: sidebarOpen ? 1 : 0,
+        width: sidebarOpen ? "232px" : "0px",
+        minWidth: sidebarOpen ? "232px" : "0px",
+        overflow: "hidden",
+        transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease, width 0.28s cubic-bezier(0.4,0,0.2,1), min-width 0.28s cubic-bezier(0.4,0,0.2,1)",
+        pointerEvents: sidebarOpen ? "auto" : "none",
+      }}
+    >
+      {/* ── Today's Usage widget ── */}
       <div className="sidebar-energy-widget">
         <div className="sidebar-widget-top">
           <span className="sidebar-widget-label">Today&apos;s Usage</span>
@@ -73,6 +83,7 @@ const Sidebar = () => {
         </div>
       </div>
 
+      {/* ── Nav sections ── */}
       {navSections.map((section) => (
         <div key={section.label} className="sidebar-section">
           <p className="sidebar-section-label">{section.label}</p>
@@ -95,6 +106,7 @@ const Sidebar = () => {
         </div>
       ))}
 
+      {/* ── Footer ── */}
       <div className="sidebar-footer">
         <div className="sidebar-footer-icon"><FaBolt /></div>
         <div className="sidebar-footer-text">
