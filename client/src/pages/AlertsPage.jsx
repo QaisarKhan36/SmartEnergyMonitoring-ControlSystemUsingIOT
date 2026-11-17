@@ -1,10 +1,3 @@
-// src/pages/AlertsPage.jsx  — STEP 6 WIRED VERSION
-// Changes from original:
-//   • INITIAL_RULES removed — loaded from GET /api/alerts/rules
-//   • createRule / updateRule / deleteRule call API
-//   • Threshold reads from and writes to context (which hits API)
-//   • Active alerts tab reads from DashboardContext (already wired)
-
 import React, { useState, useEffect } from "react";
 import useDashboard from "../context/useDashboard";
 import { alerts as alertApi } from "../services/api";

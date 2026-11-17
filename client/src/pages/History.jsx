@@ -1,10 +1,3 @@
-// src/pages/History.jsx  — STEP 6 WIRED VERSION
-// Changes from original:
-//   • HISTORY_DATA array removed — data loaded from GET /api/history
-//   • Filters (type, device, search) sent as query params to API
-//   • Pagination done server-side
-//   • Export CSV uses real fetched data
-
 import React, { useState, useEffect, useCallback } from "react";
 import {
   BarChart,

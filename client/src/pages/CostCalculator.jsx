@@ -1,10 +1,3 @@
-// src/pages/CostCalculator.jsx  — STEP 6 WIRED VERSION
-// Changes from original:
-//   • Loads real cost summary from GET /api/analytics/cost on mount
-//   • Save button calls auth.updateProfile() to persist tariff+budget to DB
-//   • Real device breakdown loaded from GET /api/analytics/breakdown
-//   • Projections calculated from actual kWh, not hardcoded 18.6
-
 import React, { useState, useMemo, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, ReferenceLine } from "recharts";
 import useDashboard from "../context/useDashboard";

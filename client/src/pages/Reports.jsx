@@ -1,10 +1,3 @@
-// src/pages/Reports.jsx  — STEP 6 WIRED VERSION
-// Changes from original:
-//   • handleExportCSV calls GET /api/analytics/export for real data
-//   • Preview table populated from live API data
-//   • Date range picker maps to real from/to query params
-//   • Loading state shown while fetching preview
-
 import React, { useState, useEffect } from "react";
 import useDashboard from "../context/useDashboard";
 import { analytics } from "../services/api";

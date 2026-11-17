@@ -1,9 +1,3 @@
-// src/components/TopBar.jsx  — STEP 5 WIRED VERSION
-// Changes from original:
-//   • handleSignOut calls auth.logout() — clears token, redirects to Login
-//   • Profile name/email pulled from currentUser in DashboardContext
-//   • Everything else is identical to the original
-
 import React, { useState, useRef, useEffect } from "react";
 import {
   FaBars, FaBell, FaSearch, FaWifi, FaUserCircle, FaChevronDown,

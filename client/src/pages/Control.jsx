@@ -1,10 +1,3 @@
-// src/pages/Control.jsx  — STEP 6 WIRED VERSION
-// Changes from original:
-//   • handleScene fires real relay commands for each scene
-//   • handleQuickAction fires bulk toggles via API
-//   • totalWatts reads from real device latestReading.power
-//   • Device toggle and relay toggles already worked via context — unchanged
-
 import React, { useState } from "react";
 import useDashboard from "../context/useDashboard";
 import { devices as devApi } from "../services/api";

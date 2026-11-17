@@ -1,7 +1,3 @@
-// src/pages/Analytics.jsx  — STEP 6 WIRED VERSION
-// All dummy const arrays removed. Data loaded from /api/analytics/*.
-// Loading skeletons shown while fetching. Everything else unchanged.
-
 import React, { useState, useEffect } from "react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,

@@ -1,10 +1,3 @@
-// src/pages/Realtimedata.jsx  — STEP 5 WIRED VERSION
-// Changes from original:
-//   • Removed jitter() simulator and setInterval
-//   • Connected to real VMC WebSocket via connectWS from api.js
-//   • Pausing disconnects from WS, resuming reconnects
-//   • Everything else (gauges, sparklines, table) is unchanged
-
 import React, { useState, useEffect, useRef } from "react";
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import useDashboard from "../context/useDashboard";

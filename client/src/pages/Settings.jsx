@@ -1,10 +1,3 @@
-// src/pages/Settings.jsx  — STEP 5 WIRED VERSION
-// Changes from original:
-//   • handleSave now calls auth.updateProfile() / auth.changePassword()
-//   • Security tab API key regeneration calls auth.regenerateApiKey()
-//   • Profile loads from currentUser in DashboardContext on mount
-//   • Everything else (tabs, layout, inputs) is unchanged
-
 import React, { useState, useEffect } from "react";
 import useDashboard from "../context/useDashboard";
 import { auth } from "../services/api";
