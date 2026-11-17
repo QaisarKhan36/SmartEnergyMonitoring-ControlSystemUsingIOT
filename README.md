@@ -6,21 +6,21 @@ The idea is that an ESP32 with current/voltage sensors and a relay board sits on
 
 ## What it does
 
-- **Live dashboard:** voltage, current, power, energy, frequency and power factor for each device, updated over WebSocket.
-- **Remote control:** turn a whole device on or off, or switch single relay channels. There are also scenes and quick actions that switch several things at once.
-- **Alerts:** set your own rules (for example power above 1000 W, or voltage below 210 V) with a severity. When a reading crosses your power limit, an alert is created automatically.
-- **Schedules:** turn relays on and off at set times on chosen days.
-- **Analytics:** hourly, weekly and monthly usage, usage per device, this period vs last period, and how many times limits were crossed.
-- **Cost calculator:** flat rate, time-of-use and tiered tariffs.
-- **Reports and history:** export data by day, device, alerts or month, and see a log of everything that happened.
-- **Accounts:** register and log in with JWT, change your profile and password, and generate an API key.
+- Live dashboard: voltage, current, power, energy, frequency and power factor for each device, updated over WebSocket.
+- Remote control: turn a whole device on or off, or switch single relay channels. There are also scenes and quick actions that switch several things at once.
+- Alerts: set your own rules (for example power above 1000 W, or voltage below 210 V) with a severity. When a reading crosses your power limit, an alert is created automatically.
+- Schedules: turn relays on and off at set times on chosen days.
+- Analytics: hourly, weekly and monthly usage, usage per device, this period vs last period, and how many times limits were crossed.
+- Cost calculator: flat rate, time-of-use and tiered tariffs.
+- Reports and history: export data by day, device, alerts or month, and see a log of everything that happened.
+- Accounts: register and log in with JWT, change your profile and password, and generate an API key.
 
 ## Tech
 
-- **Frontend:** React 18, Vite, Recharts, react-icons
-- **Backend:** Node.js, Express, MongoDB with Mongoose, WebSocket (`ws`)
-- **Security:** JWT, bcrypt, Helmet, rate limiting (300 requests per 15 minutes)
-- **Hardware:** ESP32 with sensors and a 4-channel relay, or the virtual controller
+- Frontend: React 18, Vite, Recharts, react-icons
+- Backend: Node.js, Express, MongoDB with Mongoose, WebSocket (`ws`)
+- Security: JWT, bcrypt, Helmet, rate limiting (300 requests per 15 minutes)
+- Hardware: ESP32 with sensors and a 4-channel relay, or the virtual controller
 
 ## How it fits together
 
@@ -59,7 +59,7 @@ hardware/               virtual microcontroller
 
 You need Node.js 18+ and MongoDB running locally.
 
-**Server**
+### Server
 
 ```bash
 cd server
@@ -69,7 +69,7 @@ npm run seed              # optional: demo user and devices
 npm run dev               # http://localhost:5000
 ```
 
-**Client**
+### Client
 
 ```bash
 cd client
